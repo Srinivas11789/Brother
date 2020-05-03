@@ -1,0 +1,6 @@
+framework module BRPtouchPrinterKit {
+  umbrella header "BRPtouchPrinterKit.h"
+
+  export *
+  module * { export * }
+}
