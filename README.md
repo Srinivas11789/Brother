@@ -87,11 +87,11 @@ This is a demo project that you could leverage to start building on top of. Some
   - You also might need to sign the app and trust the signature on your IOS device. 
 
 ### Flow Diagram
-![flow](https://github.com/srinivas11789/Brother/assets/flow.png)
+![flow](https://github.com/Srinivas11789/Brother/blob/master/assets/flow.png)
 
 
 ### Demo
-[![demo](https://github.com/srinivas11789/Brother/assets/demo.png)](https://github.com/srinivas11789/Brother/assets/demo.mov)
+[![demo](https://github.com/Srinivas11789/Brother/blob/master/assets/demo.png)](https://github.com/Srinivas11789/Brother/blob/master/assets/demo.png)
 
 ### Finding the Printer ( Discover printer logic )
 > --> Method 1
