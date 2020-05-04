@@ -68,7 +68,6 @@ class MainActivity: FlutterActivity() {
                 paint.getTextBounds(text, 0, text.length, rectText)
             }
             paint.setStyle(Paint.Style.FILL);
-            //c.rotate(90f, c.width.toFloat()/2, c.height.toFloat()/2)
             c.drawRect(rectText, paint);
             c.drawText(text, x.toFloat(), y.toFloat(), paint)
             c.rotate(90f, c.width.toFloat()/2, c.height.toFloat()/2)
@@ -88,23 +87,13 @@ class MainActivity: FlutterActivity() {
         settings.printerModel = printerModels[model]
         settings.port = PrinterInfo.Port.NET;
         settings.ipAddress = ip;
-        //settings.workPath = context.getFilesDir().absolutePath + "/";
-        // settings.workPath = context.getCacheDir() + File.separator + "workPath";
         settings.workPath = context.filesDir.absolutePath + "/";
-        settings.labelNameIndex = labelSizes[label]!! //LabelInfo.QL1100.W102H51.ordinal;
+        settings.labelNameIndex = labelSizes[label]!!;
         settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
-        //settings.paperSize = "103mmx164mm"
         settings.isAutoCut = true;
         printer.setPrinterInfo(settings);
 
-        print("called here");
-        println(label);
-        println(ip);
         val bitmap = StringToBitMap(message);
-        print("Done converting...");
-        println(label);
-        println(ip);
-        println(bitmap);
 
         Thread({
             if (printer.startCommunication()) {
@@ -117,38 +106,23 @@ class MainActivity: FlutterActivity() {
         }).start();
     }
 
+    // Print Image File
     private fun printImage(imageFile: String?, model: String?, ip: String?, label: String?) {
         val printer: Printer = Printer();
         val settings: PrinterInfo = printer.getPrinterInfo();
         settings.printerModel = printerModels[model];
         settings.port = PrinterInfo.Port.NET;
         settings.ipAddress = ip;
-        //settings.workPath = context.getFilesDir().getAbsolutePath() + "/";
-        //settings.workPath = File.separator + context.cacheDir + File.separator + "workPath";
         val dirs = imageFile?.split("/");
-
-        /*
-        if (imageFile != null) {
-            if (!imageFile.contains("storage")) {
-                //settings.workPath = dirs.joinToString("/", "", "", dirs.size - 2, "")
-                settings.workPath = context.filesDir.absolutePath + "/";
-            }
-        }
-        */
         settings.workPath = context.filesDir.absolutePath + "/";
-        settings.labelNameIndex = labelSizes[label]!! //LabelInfo.QL1100.W102H51.ordinal;
+        settings.labelNameIndex = labelSizes[label]!!;
         settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
-        //settings.paperSize = "103mmx164mm"
         settings.isAutoCut = true;
         printer.setPrinterInfo(settings);
 
-        println("called here at image");
-        println(settings.workPath);
-        println(imageFile);
-
         Thread({
             if (printer.startCommunication()) {
-                    val result: PrinterStatus = printer.printFile(imageFile); //printer.printFile(dirs?.get(dirs.size-1)); //
+                    val result: PrinterStatus = printer.printFile(imageFile);
                     if (result.errorCode != ErrorCode.ERROR_NONE) {
                         Log.d("TAG", "ERROR - " + result.errorCode);
                     }

@@ -7,7 +7,7 @@
 
 ### Summary
 * **What does this accomplish?**
-  - A starter to develop Brother printer apps using Flutter
+  - A starter to develop Brother printer apps using Flutter ( One of the ways! )
 
 * **What are the supported platforms?**
   - IOS
@@ -39,9 +39,9 @@
   - Now that we have calls that work with native sdks for printing stuff. We can build our APP idea/functionality with Flutter that would be cross platform.
 
 ### Getting Started
-This is a demo project that you could leverage to start building on top of. Some of the code has been intentionally kept simple to easily understand the flow.
+This is a demo project that you could leverage to start building on top of. Some of the code has been intentionally kept simple to easily understand the flow and without proper error handling.
 
-### Test the App
+* Test the App
 
 ```
 * Download and install Flutter
@@ -51,34 +51,93 @@ This is a demo project that you could leverage to start building on top of. Some
   - flutter doctor -v 
   - flutter run 
 ```
+
+* Steps to keep things going
+> As there are not a lot of err handling done ( inprogress to make it better! ), following this should keep everything good.
+```
+1. Use discover printers to discover brother printers in the network. Select the corresponding printer from the dropdown. ( dropdown might need a nudge to update )
+2. Select the printer and label size you have installed
+3. Select image from camera/gallery or text to then print
+```
+
+### Expanding Logic to Include All the Printer Models
+* mDNS allows you to discover the IPaddress and the MODEL of the printer. Currently this would happen and discover as {modelId: Ipaddress}
+* On the Android side, I have a map that relates the printerId to the ENUM value of printer model used inside the SDK. This map can be updated with your model ENUM or all the models to make it work with any models
+
+* This currently is supported only on Android as there is a mDNS IOS issue that needs to be resolved ( ref: https://github.com/flutter/flutter/issues/42102 )
+
+* If your printer is discovered via mDNS and shows in the dropdown ( should happen! ) --> Just update the map of printers in android side with the model and things should work!. Let me know otherwise, happy to debug...
+* Current workaround for IOS: 
+  - For IOS, I have used WIFI discovery for port 9100 but hardcoded the modelId to the one I use ( QL1110W ). I have an extra method to use SNMP to fetch this which is yet to be completed!
+  - Update the modelId to the one you have to make it work with IOS
+
+* Similar steps required for Label sizes
   
 ### Caveat or Things to Look out for
 
 * `Real devices VS Emulators`
-  - The emulators network is not exposed directly to LAN so the `printer detection` wont work. In that case hardocde the methodChannel calls with the IP Address of the printer and corresponding model number + label size.
+  - The emulators network is not exposed directly to LAN so the `printer detection` wont work. In that case hardocde the methodChannel calls with the IP Address of the printer and corresponding model number + label size. 
+
+* Running flutter on IOS devices ( real device )
+  - xCode might be needed to run the app on IOS to take care of signing the app and handle while screen is locked. ( Product > Run )
+
+* IOS launch failure on real device with Pod Errors
+  - Clean up the Pods folder (https://github.com/CocoaPods/CocoaPods/issues/8377)
+  - flutter clean & flutter run
+  - You also might need to sign the app and trust the signature on your IOS device. 
 
 ### Flow Diagram
-
+![flow](https://github.com/srinivas11789/Brother/assets/flow.png)
 
 
 ### Demo
-[]()
+[![demo](https://github.com/srinivas11789/Brother/assets/demo.png)](https://github.com/srinivas11789/Brother/assets/demo.mov)
 
 ### Finding the Printer ( Discover printer logic )
-* Bonjour spec
+> --> Method 1
+* I was amazed looking at MAC having ability to detect all printer  types --> dug in to the [BonjourSpec](https://developer.apple.com/bonjour/printing-specification/bonjourprinting-1.2.1.pdf). Specifically this,
 ```
 _printer._tcp.local.        Port 515
 _ipp._tcp.local.            Port 631
 _pdl-datastream._tcp.local. Port 9100
 ```
+* Using [mDNS](https://en.wikipedia.org/wiki/Multicast_DNS) it is possible to resolve services within small networks that is WIFI. We could retrieve the model and ip address using the multicast_dns package in Flutter. ( This works in Android )
+* As said before in IOS the mDNS method needs a little bit of work or fix to have it working.
+
+> --> Method 2
+* We could scan for network ports that are open directly. So looking for 9100 returns ip address of the printer.
+* To get the model we could either reverse resolve the ipaddress :bulb:
+* Or, use SNMP get to query for specific OID.
+* As of now, the modelID discovery is in progress....
 
 ### Credits
 * Built as a part of Brother Hackathon 2020 - Thanks to all the peers!
   - Rob Payne's introduction to Flutter
 * Thanks to the authors of all the references that helped me!
 
-### References
+### Log
 
+* April 25
+  - Research method channels and a minimal app flow working between Flutter --> IOS, Android
+  - Write wrappers for Brother SDK in android and ios to call into.
+* April 26
+  - Add the printText functionality
+  - Test, test, test ( Emulators + Real devices )
+  - Start with printImages
+* May 2
+  - Printer discovery research and add logic
+  - Make multiple ways of making this works and test, test, test
+  - Solve flutter issues...
+* May 3
+  - Work on flutter UI to have more options
+  - Clean up, document and :rocket:
+
+
+> This app is not complete so please feel free to contribute!
+
+
+### References
+```
 * Design/Methods
   - https://raw.githubusercontent.com/flutter/flutter/master/.gitignore
   - https://flutter.dev/docs/development/platform-integration/platform-channels
@@ -136,4 +195,5 @@ _pdl-datastream._tcp.local. Port 9100
   - https://android.okhelp.cz/create-bitmap-and-draw-text-into-bitmap-android-example/
   - https://discuss.kotlinlang.org/t/using-a-bitmap-inside-a-new-android-project/14714
 * Random Helpers
-  - https://github.com/CocoaPods/CocoaPods/issues/8377    
+  - https://github.com/CocoaPods/CocoaPods/issues/8377
+```
