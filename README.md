@@ -60,6 +60,9 @@ This is a demo project that you could leverage to start building on top of. Some
 3. Select image from camera/gallery or text to then print
 ```
 
+### Flow Diagram
+![flow](https://github.com/Srinivas11789/Brother/blob/master/assets/flow.png)
+
 ### Expanding Logic to Include All the Printer Models
 * mDNS allows you to discover the IPaddress and the MODEL of the printer. Currently this would happen and discover as {modelId: Ipaddress}
 * On the Android side, I have a map that relates the printerId to the ENUM value of printer model used inside the SDK. This map can be updated with your model ENUM or all the models to make it work with any models
@@ -72,6 +75,10 @@ This is a demo project that you could leverage to start building on top of. Some
   - Update the modelId to the one you have to make it work with IOS
 
 * Similar steps required for Label sizes
+
+### App Screens 
+
+<img src=https://github.com/Srinivas11789/Brother/blob/master/assets/android1.jpg height="625" width="350" hspace="20"/>  <img src=https://github.com/Srinivas11789/Brother/blob/master/assets/android2.jpg height="625" width="350"/>
   
 ### Caveat or Things to Look out for
 
@@ -86,12 +93,10 @@ This is a demo project that you could leverage to start building on top of. Some
   - flutter clean & flutter run
   - You also might need to sign the app and trust the signature on your IOS device. 
 
-### Flow Diagram
-![flow](https://github.com/Srinivas11789/Brother/blob/master/assets/flow.png)
-
-
 ### Demo
-[![demo](https://github.com/Srinivas11789/Brother/blob/master/assets/demo.png)](https://github.com/Srinivas11789/Brother/blob/master/assets/demo.png)
+<p align="center">
+  <img src=https://github.com/Srinivas11789/Brother/blob/master/assets/demo.gif />
+</p>
 
 ### Finding the Printer ( Discover printer logic )
 > --> Method 1
@@ -111,8 +116,10 @@ _pdl-datastream._tcp.local. Port 9100
 * As of now, the modelID discovery is in progress....
 
 ### Credits
-* Built as a part of Brother Hackathon 2020 - Thanks to all the peers!
+* Built as a part of Brother Hackathon 2020 - Thanks to all the peers and Brother Inc!
+  Specially,
   - Rob Payne's introduction to Flutter
+  - Linus for oranizing everything!
 * Thanks to the authors of all the references that helped me!
 
 ### Log
