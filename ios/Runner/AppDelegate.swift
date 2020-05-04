@@ -121,6 +121,7 @@ extension AppDelegate {
         settings.strPaperName = label
         settings.nPrintMode = PRINT_FIT
         settings.nAutoCutFlag = OPTION_AUTOCUT
+        settings.nHalftone = HALFTONE_DITHER
         printer.setPrintInfo(settings)
         print("set options")
         

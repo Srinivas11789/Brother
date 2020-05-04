@@ -66,7 +66,7 @@ This is a demo project that you could leverage to start building on top of. Some
 
 * This currently is supported only on Android as there is a mDNS IOS issue that needs to be resolved ( ref: https://github.com/flutter/flutter/issues/42102 )
 
-* If your printer is discovered via mDNS and shows in the dropdown ( should happen! ) --> Just update the map of printers in android side with the model and things should work!. Let me know otherwise, happy to debug...
+* `To add new printer model?` If your printer is discovered via mDNS and shows in the dropdown ( should happen! ) --> Just update the map of printers in android side with the model and things should work!. Let me know otherwise, happy to debug...
 * Current workaround for IOS: 
   - For IOS, I have used WIFI discovery for port 9100 but hardcoded the modelId to the one I use ( QL1110W ). I have an extra method to use SNMP to fetch this which is yet to be completed!
   - Update the modelId to the one you have to make it work with IOS
