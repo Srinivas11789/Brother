@@ -94,7 +94,7 @@ This is a demo project that you could leverage to start building on top of. Some
   - Steps to get connected:
   - 1. Power on printer (wait for solid green light)
     
-    2. Download Brother Wireless Wizard [here]([https://support.brother.com/g/b/midlink_product.aspx?c=ca&lang=en&content=dl&site=pc&orgc=ca&orglang=en&targetpage=17&pcatid=37](https://support.brother.com/g/b/midlink_product.aspx?c=ca&lang=en&content=dl&site=pc&orgc=ca&orglang=en&targetpage=17&pcatid=37))
+    2. Download Brother Wireless Wizard [here](https://support.brother.com/g/b/midlink_product.aspx?c=ca&lang=en&content=dl&site=pc&orgc=ca&orglang=en&targetpage=17&pcatid=37)
     
     3. Set up wireless using the wizard steps. If wireless setup fails using the WPS button, wait until it gives option to set up using USB
     
@@ -104,7 +104,7 @@ This is a demo project that you could leverage to start building on top of. Some
   
   - Xcode might be needed to run the app on IOS to take care of signing the app and handle while screen is locked. ( Product > Run )
   - Debugging a few known Xcode errors:
-  - 1. If Flutter run gives a build error with Xcode migration, complete the steps [here]([https://flutter.dev/docs/development/ios-project-migration](https://flutter.dev/docs/development/ios-project-migration) and it should work after that
+    1. If Flutter run gives a build error with Xcode migration, complete the steps [here](https://flutter.dev/docs/development/ios-project-migration) and it should work after that
     
     2. - Run(Flutter IDE): flutter clean
        
