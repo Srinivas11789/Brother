@@ -83,14 +83,38 @@ This is a demo project that you could leverage to start building on top of. Some
 ### Caveat or Things to Look out for
 
 * `Real devices VS Emulators`
-  - The emulators network is not exposed directly to LAN so the `printer detection` wont work. In that case hardocde the methodChannel calls with the IP Address of the printer and corresponding model number + label size. 
+  - The emulators network is not exposed directly to LAN so the `printer detection` wont work. In that case hardcode the methodChannel calls with the IP Address of the printer and corresponding model number + label size. 
+
+* Printer must be connected to the same wireless network the device is ( real device )
+  
+  
+  
+  - So far the case with Brother QL-1110NWB
+  - If printer is not wirelessly connected, it may still show up in the app, but the connection to print will always fail
+  - Steps to get connected:
+  - 1. Power on printer (wait for solid green light)
+    
+    2. Download Brother Wireless Wizard [here](https://support.brother.com/g/b/midlink_product.aspx?c=ca&lang=en&content=dl&site=pc&orgc=ca&orglang=en&targetpage=17&pcatid=37)
+    
+    3. Set up wireless using the wizard steps. If wireless setup fails using the WPS button, wait until it gives option to set up using USB
+    
+    4. Once printer is connected to network, make sure device is on the same network and you're good to go!
 
 * Running flutter on IOS devices ( real device )
-  - xCode might be needed to run the app on IOS to take care of signing the app and handle while screen is locked. ( Product > Run )
+  
+  - Xcode might be needed to run the app on IOS to take care of signing the app and handle while screen is locked. ( Product > Run )
+  - Debugging a few known Xcode errors:
+    1. If Flutter run gives a build error with Xcode migration, complete the steps [here](https://flutter.dev/docs/development/ios-project-migration) and it should work after that
+    
+    2. - Run(Flutter IDE): flutter clean
+       
+       - Run (Xcode): Product -- > Clean Build Folder
 
 * IOS launch failure on real device with Pod Errors
+  
   - Clean up the Pods folder (https://github.com/CocoaPods/CocoaPods/issues/8377)
   - flutter clean & flutter run
+  - pod install
   - You also might need to sign the app and trust the signature on your IOS device. 
 
 ### Demo
