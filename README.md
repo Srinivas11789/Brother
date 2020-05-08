@@ -83,7 +83,7 @@ This is a demo project that you could leverage to start building on top of. Some
 ### Caveat or Things to Look out for
 
 * `Real devices VS Emulators`
-  - The emulators network is not exposed directly to LAN so the `printer detection` wont work. In that case hardocde the methodChannel calls with the IP Address of the printer and corresponding model number + label size. 
+  - The emulators network is not exposed directly to LAN so the `printer detection` wont work. In that case hardcode the methodChannel calls with the IP Address of the printer and corresponding model number + label size. 
 
 * Printer must be connected to the same wireless network the device is ( real device )
   
