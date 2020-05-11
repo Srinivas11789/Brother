@@ -1,8 +1,9 @@
 package com.example.brother_demo
 
-import android.R.attr.bitmap
-import android.content.Intent
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.os.Build
 import android.util.Log
 import androidx.annotation.NonNull
@@ -16,11 +17,11 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
-import android.content.Context
-import java.io.File
+import java.io.*
 
-val printerModels = mapOf("QL-1110NWB" to PrinterInfo.Model.QL_1110NWB, "QL-820NWB" to PrinterInfo.Model.QL_820NWB);
+val printerModels = mapOf("QL-1110NWB" to PrinterInfo.Model.QL_1110NWB, "QL-820NWB" to PrinterInfo.Model.QL_820NWB, "RJ-2150" to PrinterInfo.Model.RJ_2150);
 val labelSizes = mapOf("103mmx164mm" to LabelInfo.QL1100.W103H164.ordinal, "62mmx8m" to LabelInfo.QL1100.W62.ordinal);
+val rjCustomLabels = mapOf("Diecut->100x50" to "rj2150_diecut_100x50x5.bin", "Continuous->58mm" to "rj2150_58mm_continuous.bin");
 
 class MainActivity: FlutterActivity() {
     // Channel Name
@@ -80,6 +81,19 @@ class MainActivity: FlutterActivity() {
         }
     }
 
+    // Create the custom label setting to use
+    private fun createLabelRJ(label_name: String?): String {
+        val destDirPath: String = context.filesDir.absolutePath + "/labels/";
+        val destDir = File(destDirPath);
+        if (!destDir.exists()) destDir.mkdirs();
+        val destFilePath: String = destDirPath + label_name;
+        val destFile = File(destFilePath);
+        val origin: InputStream = context.assets.open(label_name);
+        origin.use { input -> destFile.outputStream().use { output -> input.copyTo(output)}};
+        origin.close();
+        return destFilePath;
+    }
+
     // Print Image Data
     private fun printData(message: String?, model: String?, ip: String?, label: String?) {
         val printer: Printer = Printer();
@@ -87,10 +101,17 @@ class MainActivity: FlutterActivity() {
         settings.printerModel = printerModels[model]
         settings.port = PrinterInfo.Port.NET;
         settings.ipAddress = ip;
-        settings.workPath = context.filesDir.absolutePath + "/";
-        settings.labelNameIndex = labelSizes[label]!!;
-        settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
-        settings.isAutoCut = true;
+        settings.workPath = this.filesDir.absolutePath + "/";
+        if (model?.contains("RJ")!!) {
+            Log.d("TAG", "Detected RJ Printer");
+            settings.paperSize = PrinterInfo.PaperSize.CUSTOM;
+            settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
+            settings.customPaper = createLabelRJ(rjCustomLabels[label]);
+        } else {
+            settings.labelNameIndex = labelSizes[label]!!;
+            settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
+            settings.isAutoCut = true;
+        }
         printer.setPrinterInfo(settings);
 
         val bitmap = StringToBitMap(message);
@@ -115,9 +136,17 @@ class MainActivity: FlutterActivity() {
         settings.ipAddress = ip;
         val dirs = imageFile?.split("/");
         settings.workPath = context.filesDir.absolutePath + "/";
-        settings.labelNameIndex = labelSizes[label]!!;
-        settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
-        settings.isAutoCut = true;
+        if (model?.contains("RJ")!!) {
+            Log.d("TAG", "Detected RJ Printer");
+            settings.paperSize = PrinterInfo.PaperSize.CUSTOM;
+            settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
+            settings.customPaper = createLabelRJ(rjCustomLabels[label]);
+            Log.d("TAG", settings.customPaper);
+        } else {
+            settings.labelNameIndex = labelSizes[label]!!;
+            settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
+            settings.isAutoCut = true;
+        }
         printer.setPrinterInfo(settings);
 
         Thread({

@@ -57,7 +57,7 @@ var discoveredPrinters = new Map();
 // 5. Selected Image from Gallery/Camera
 File _selectedImage;
 // 6. Label sizes selection
-List<String> labelsizes = ["None", "103mmx164mm", "62mmx8m"];
+List<String> labelsizes = ["None", "103mmx164mm", "62mmx8m", "Diecut->100x50", "Continuous->58mm"];
 var selectedLabel = "None";
 
 // PRINT TEXT FORM
