@@ -67,6 +67,35 @@ extension AppDelegate {
         }
         return img
     }
+
+    // Create custom label file from the label data
+    @available(iOS 10.0, *)
+    private func createRJLabel(labelData: String) -> String {
+      let encodedLabelData = labelData.padding(toLength: ((labelData.count+3)/4)*4, withPad: "=", startingAt: 0)
+      //https://stackoverflow.com/questions/36364324/swift-base64-decoding-returns-nil
+      var labelDataDecoded: Data = "Dummy ".data(using: .utf8)!
+      let data = Data(base64Encoded: encodedLabelData, options: .ignoreUnknownCharacters)
+      if let data = data {
+        labelDataDecoded  =  data
+      }
+      print(labelDataDecoded)
+      //https://stackoverflow.com/questions/24181699/how-to-check-if-a-file-exists-in-the-documents-directory-in-swift
+      if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+          let fileURL = dir.appendingPathComponent(labelData+".bin")
+          //if FileManager.default.fileExists(atPath: fileURL.path) {
+          //  return fileURL.path
+          //}
+          do {
+            try labelDataDecoded.write(to: fileURL)
+          } catch {
+            print("Error info: \(error)")
+            return ""
+          }
+          //print(fileURL.path)
+          return fileURL.path
+      }
+      return ""
+    }
     
     // Print Label
     @available(iOS 10.0, *)
@@ -82,8 +111,13 @@ extension AppDelegate {
 
         // Print Settings
         let settings = BRPtouchPrintInfo()
-        settings.strPaperName = label
-        settings.nPrintMode = PRINT_FIT
+        if model.contains("RJ") {
+            settings.strPaperName = "CUSTOM"
+            printer.setCustomPaperFile(createRJLabel(labelData: label))
+        } else {
+            settings.strPaperName = label
+        }
+        settings.nPrintMode = PRINT_FIT_TO_PAGE
         settings.nAutoCutFlag = OPTION_AUTOCUT
         printer.setPrintInfo(settings)
         print("set options")
@@ -118,7 +152,12 @@ extension AppDelegate {
 
         // Print Settings
         let settings = BRPtouchPrintInfo()
-        settings.strPaperName = label
+        if model.contains("RJ") {
+            settings.strPaperName = "CUSTOM"
+            printer.setCustomPaperFile(createRJLabel(labelData: label))
+        } else {
+            settings.strPaperName = label
+        }
         settings.nPrintMode = PRINT_FIT
         settings.nAutoCutFlag = OPTION_AUTOCUT
         settings.nHalftone = HALFTONE_DITHER

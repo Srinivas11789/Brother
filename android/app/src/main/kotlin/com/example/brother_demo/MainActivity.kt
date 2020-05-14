@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Build
+import android.util.Base64
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
@@ -81,8 +82,8 @@ class MainActivity: FlutterActivity() {
         }
     }
 
-    // Create the custom label setting to use
-    private fun createLabelRJ(label_name: String?): String {
+    // Create the custom label setting to use --> UNUSED < This is another method to use the bin file from assets >
+    private fun createLabelRJFromBinFile(label_name: String?): String {
         val destDirPath: String = context.filesDir.absolutePath + "/labels/";
         val destDir = File(destDirPath);
         if (!destDir.exists()) destDir.mkdirs();
@@ -91,6 +92,17 @@ class MainActivity: FlutterActivity() {
         val origin: InputStream = context.assets.open(label_name);
         origin.use { input -> destFile.outputStream().use { output -> input.copyTo(output)}};
         origin.close();
+        return destFilePath;
+    }
+
+    // Create the custom label setting to use 
+    private fun createLabelRJ(label_name: String?): String {
+        val destDirPath: String = context.filesDir.absolutePath + "/labels/";
+        val destDir = File(destDirPath);
+        if (!destDir.exists()) destDir.mkdirs();
+        val destFilePath: String = destDirPath + label_name;
+        val destFile = File(destFilePath);
+        destFile.writeBytes(Base64.decode(label_name, Base64.DEFAULT));
         return destFilePath;
     }
 
@@ -106,7 +118,7 @@ class MainActivity: FlutterActivity() {
             Log.d("TAG", "Detected RJ Printer");
             settings.paperSize = PrinterInfo.PaperSize.CUSTOM;
             settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
-            settings.customPaper = createLabelRJ(rjCustomLabels[label]);
+            settings.customPaper = createLabelRJ(label);
         } else {
             settings.labelNameIndex = labelSizes[label]!!;
             settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
@@ -140,7 +152,7 @@ class MainActivity: FlutterActivity() {
             Log.d("TAG", "Detected RJ Printer");
             settings.paperSize = PrinterInfo.PaperSize.CUSTOM;
             settings.printMode = PrinterInfo.PrintMode.FIT_TO_PAGE;
-            settings.customPaper = createLabelRJ(rjCustomLabels[label]);
+            settings.customPaper = createLabelRJ(label);
             Log.d("TAG", settings.customPaper);
         } else {
             settings.labelNameIndex = labelSizes[label]!!;
