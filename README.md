@@ -139,6 +139,19 @@ _pdl-datastream._tcp.local. Port 9100
 * Or, use SNMP get to query for specific OID.
 * As of now, the modelID discovery is in progress....
 
+### Custom Label Logic with RJ Printers ( Specifically RJ 2150 and extendable.... )
+* `Implemented`
+  - Introduced a new map for labels to hold the exact label data to be fed to the printer
+  - For custom labels, we use base64 encoded version of the label data 
+    - `Pros:` This allows us to avoid `.bin` files + file operations + downloading or moving bin files. Instead we use the base64 encoded label data directly.
+    - To add new label data --> Use printer setting tool available for windows --> `cat <label_name>.bin | base64` --> add to the map
+* `Other Logic Considered and also be better`
+  - Use the `<label_name>.bin` in assets at native code ( android/ ios) - Android part of this logic is already done but not used
+  - Use the `<label_name>.bin` in assets at dart side and share to native platform --> https://flutter.dev/docs/development/ui/assets-and-images 
+
+### ToDos/Upgrades
+* Some of the ops functions like stringToBitmap, createLabelRJ can be moved to Dart side to decrease native code.
+
 ### Credits
 * Built as a part of Brother Hackathon 2020 - Thanks to all the peers and Brother Inc!
   Specially,

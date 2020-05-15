@@ -11,6 +11,14 @@ import 'package:wifi/wifi.dart';
 import 'package:ping_discover_network/ping_discover_network.dart';
 import 'package:multicast_dns/multicast_dns.dart';
 
+// Custom Label Definitions
+var labelData = {
+  "103mmx164mm": "103mmx164mm", 
+  "62mmx8m": "62mmx8m",
+  'RJ2150:Continuous->58mm': 'G2lhARtpVU8QNzkAhAAAAAAAAAAbaVV3AT8EOgAAOgAAsAEAAAAAAAAAAAAAAKoBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANThtbQAAAAAAAAAAAAAAADIuMiIAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAGAAAAAA=',
+  'RJ2150:Diecut->100x50': 'G2lhARtpVU8QNzkAhAAAAAAAAAAbaVV3AT8EMmQAMhQAiAEXAwAAAAAAAAAAAAECAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARGllQ3V0MTAweDUweDUAAAAAAAAAAAAAAAAAAAAAAAAAAEcDAAAEAAAAAAABBAAAAAA=',
+};
+
 // Main App trigger
 void main() => runApp(MyApp());
 
@@ -57,8 +65,12 @@ var discoveredPrinters = new Map();
 // 5. Selected Image from Gallery/Camera
 File _selectedImage;
 // 6. Label sizes selection
-List<String> labelsizes = ["None", "103mmx164mm", "62mmx8m"];
+List<String> labelsizes = ["None", "103mmx164mm", "62mmx8m", "RJ2150:Diecut->100x50", "RJ2150:Continuous->58mm"];
+// 7. Supported models
+List<String> supportedModels = ["QL-1110NWB",  "RJ-2150"];
+// 8. Selected Choices
 var selectedLabel = "None";
+var selectedModel = "QL-1110NWB";
 
 // PRINT TEXT FORM
 // Create a PrintText widget.
@@ -111,7 +123,7 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
             ),
           ),
           DropdownButtonFormField<String>(
-            hint: new Text('Select Printer'),
+            hint: new Text('Select Discovered Printer'),
             value: selectedPrinter,
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
@@ -122,9 +134,35 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
             onChanged: (String newValue) {
               setState(() {
                 selectedPrinter = newValue;
+                if (discoveredPrinters.containsKey(selectedPrinter)) {
+                    selectedModel = selectedPrinter.split(" ")[1];
+                };
               });
             },
             items: networkPrinters
+              .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+          ),
+          DropdownButtonFormField<String>(
+            hint: new Text('Select Printer Model'),
+            value: selectedModel,
+            icon: Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            disabledHint: new Text((discoveredPrinters.containsKey(selectedPrinter))?  selectedPrinter.split(" ")[1] : 'Select Printer Model'),
+            style: TextStyle(
+              color: Colors.amber
+            ),
+            onChanged: (discoveredPrinters.containsKey(selectedPrinter))? null : (String newValue) {
+              setState(() {
+                selectedModel= newValue;
+              });
+            },
+            items: supportedModels
               .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -179,17 +217,18 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
           'message': text,
           'printerModel': modelId,
           'ip': discoveredPrinters[model],
-          'label': selectedLabel,
+          'label': labelData[selectedLabel],
         });
     } else {
-      var ip = model.substring(model.indexOf('@')+1, model.length);
+      var ip = model.substring(0, model.indexOf('@'));
       debugPrint("Called Function with IP!!!!");
       debugPrint(ip);
+      debugPrint(selectedModel);
       await platform.invokeMethod('printLabel', <String, dynamic>{
           'message': text,
-          'printerModel': "QL-1110NWB",
+          'printerModel': selectedModel,
           'ip': ip,
-          'label': selectedLabel,
+          'label': labelData[selectedLabel],
         });
     }
     _canBeClicked = true;
@@ -246,7 +285,7 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
             ),
           ),
           DropdownButtonFormField<String>(
-            hint: new Text('Select Printer'),
+            hint: new Text('Select Discovered Printer/IP'),
             value: selectedPrinter,
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
@@ -260,6 +299,29 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
               });
             },
             items: networkPrinters
+              .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+          ),
+          DropdownButtonFormField<String>(
+            hint: new Text('Select Printer Model'),
+            value: selectedModel,
+            icon: Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            disabledHint: new Text((discoveredPrinters.containsKey(selectedPrinter))?  selectedPrinter.split(" ")[1] : 'Select Printer Model'),
+            style: TextStyle(
+              color: Colors.amber
+            ),
+            onChanged: (discoveredPrinters.containsKey(selectedPrinter))? null : (String newValue) {
+              setState(() {
+                selectedModel= newValue;
+              });
+            },
+            items: supportedModels
               .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -311,15 +373,15 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
           'imageFile': selectedFile.path,
           'printerModel': modelId,
           'ip': discoveredPrinters[model],
-          'label': selectedLabel,
+          'label': labelData[selectedLabel],
         });
     } else {
-      var ip = model.substring(model.indexOf('@')+1, model.length);
+      var ip = model.substring(0, model.indexOf('@'));
       await platform.invokeMethod('printImage', <String, dynamic>{ //dynamic
           'imageFile': selectedFile.path,
-          'printerModel': "QL-1110NWB",
+          'printerModel': selectedModel,
           'ip': ip,
-          'label': selectedLabel,
+          'label': labelData[selectedLabel],
         });
     }
     _canBeClicked = true;
@@ -411,8 +473,8 @@ class FindPrinters {
 
     final stream = NetworkAnalyzer.discover2(subnet, 9100);
     stream.listen((NetworkAddress addr) {
-      if (addr.exists && !networkPrinters.contains("QL-1110NWB@"+ addr.ip)) {
-        networkPrinters.add("QL-1110NWB@"+ addr.ip);
+      if (addr.exists && !networkPrinters.contains(addr.ip+"@9100")) {
+        networkPrinters.add(addr.ip+"@9100");
       }
     });
     debugPrint(networkPrinters.toString());
