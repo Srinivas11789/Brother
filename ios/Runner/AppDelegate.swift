@@ -39,6 +39,7 @@ extension AppDelegate {
                 let ip = args?["ip"] as? String;
                 let label = args?["label"] as? String;
                 self.printLabel(message: text!, model: printerModel!, ip: ip!, label:label!)
+                result("Done");
             } else if call.method == "printImage" {
                 let args = call.arguments as? [String: Any];
                 let location =  args?["imageFile"] as? String;
@@ -46,6 +47,7 @@ extension AppDelegate {
                 let ip = args?["ip"] as? String;
                 let label = args?["label"] as? String;
                 self.printImage(location: location!, model: printerModel!, ip: ip!, label: label!)
+                result("Done");
             } else {
                 result(FlutterMethodNotImplemented);
             }
