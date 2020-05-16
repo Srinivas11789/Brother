@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.AsyncTask
 import android.os.Build
 import android.util.Base64
 import android.util.Log
@@ -38,7 +39,16 @@ class MainActivity: FlutterActivity() {
                 val printerModel = call.argument("printerModel") as? String
                 val ip = call.argument("ip") as? String
                 val label = call.argument("label") as? String
-                printData(message, printerModel, ip, label)
+                val tasks = message?.replace("\\[".toRegex(), "")?.replace("\\]".toRegex(), "")?.replace("\\s".toRegex(), "")?.split(",".toRegex())?.dropLastWhile { it.isEmpty() }?.toTypedArray()
+                print(tasks)
+                AsyncTask.execute({
+                    if (tasks != null) {
+                        for (t in tasks) {
+                            printData(t, printerModel, ip, label)
+                            Thread.sleep(10000);
+                        }
+                    }
+                });
                 result.success(true) 
             } else if (call.method == "printImage") {
                 val imageFile = call.argument("imageFile") as? String

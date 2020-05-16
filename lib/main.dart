@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:image_picker/image_picker.dart';
-
 import 'package:wifi/wifi.dart';
 import 'package:ping_discover_network/ping_discover_network.dart';
 import 'package:multicast_dns/multicast_dns.dart';
@@ -26,28 +24,9 @@ void main() => runApp(MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final appTitle = 'Brother Demo App';
     return MaterialApp(
-      home: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            bottom: TabBar(
-              tabs: [
-                Tab(icon: Text("Print Text!")),
-                Tab(icon: Text("Print Image!")),
-              ],
-            ),
-            title: Text(appTitle),
-          ),
-          body: TabBarView(
-            children: [
-              MyPrintFormText(),
-              MyPrintFormImage(),
-            ],
-          ),
-        ),
-      ),
+      //title: 'Bromodoro Focus! ( bro + pomodoro )',
+      home: FirstPage(),
     );
   }
 }
@@ -71,57 +50,208 @@ List<String> supportedModels = ["QL-1110NWB",  "RJ-2150"];
 // 8. Selected Choices
 var selectedLabel = "None";
 var selectedModel = "QL-1110NWB";
+// 9. Track validation of final start of focus
+var _canBeClicked = true;
+// 10. Tasks List
+//List<String> _tasksList2 = ["slot1", "slot2", "slot3", "slot4", "slot5", "slot6", "slot7", "slot8", "slot9", "slot10", "slot11", "slot12"];
+List<String> _tasksList = [];
+//List<TextEditingController> _tasksList;
+// 11. Duration
+var selectedDuration = 0;
+List<int> durations = [0, 1, 2, 3, 4, 5];
 
 // PRINT TEXT FORM
 // Create a PrintText widget.
-class MyPrintFormText extends StatefulWidget {
+class FirstPage extends StatefulWidget {
   @override
-  MyPrintFormTextState createState() {
-    return MyPrintFormTextState();
+  InitPage createState() {
+    return InitPage();
   }
 }
+
 // Create a corresponding State class.
 // This class holds data related to the form.
-class MyPrintFormTextState extends State<MyPrintFormText> {
+class InitPage extends State<FirstPage> {
+
   // Init variables
   final _formKey = GlobalKey<FormState>();
-  final myController = TextEditingController();
-  var _canBeClicked = true;
-  FindPrinters find = new FindPrinters();
 
   // Build FORM
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return new Scaffold(
+      appBar: AppBar(
+        title: Text("Bromodoro Focus!"),
+      ),
+    body: new Column(
+      mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          TextFormField(
-            controller: myController,
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Please enter some text to label!';
-              }
-              return null;
+          DropdownButtonFormField<int>(
+            hint: new Text('Pomodoro Duration!'),
+            value: selectedDuration,
+            icon: Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            style: TextStyle(
+              color: Colors.red
+            ),
+            onChanged: (int newValue) {
+              setState(() {
+                 selectedDuration = newValue;
+              });
+            },
+            items: durations
+              .map<DropdownMenuItem<int>>((int value) {
+                return DropdownMenuItem<int>(
+                  value: value,
+                  child: Text(value.toString()),
+                );
+              }).toList(),
+          ),
+          RaisedButton(
+            child: Text('Add Tasks!'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TaskSetup()),
+              );
+            },
+          ),
+          RaisedButton(
+            child: Text('Set Printer!'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PrintSetup()),
+              );
             },
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: RaisedButton(
-              onPressed: () {
-                if (_canBeClicked) {
-                  _canBeClicked = false;
-                  if (_formKey.currentState.validate()) {
-                    Scaffold.of(context)
-                        .showSnackBar(SnackBar(content: Text('Printing Label!')));
-                    _printLabel(myController.text, selectedPrinter);
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: RaisedButton(
+                onPressed: () {
+                  if (_canBeClicked) {
+                    _canBeClicked = false;
+                    //if (_formKey.currentState.validate()) {
+                      _printLabel(_tasksList, selectedPrinter);
+                    //}
                   }
-                }
-              },
-              child: Text('Print Label'),
+                Scaffold.of(context)
+                  .showSnackBar(SnackBar(content: Text('Focus Countdown Started!')));
+                },
+                child: Text('Start Focusing!!!!'),
+              ),
             ),
-          ),
+        ],
+      ),
+    );
+  }
+
+  Future<Null> _printLabel(List<String> text, String model) async {
+    debugPrint(text.toString());
+    debugPrint("Called Function Print!!!!");
+    if (discoveredPrinters.containsKey(model)) {
+      var modelId = model.split(" ")[1];
+      debugPrint(modelId);
+      await platform.invokeMethod('printLabel', <String, dynamic>{
+          'message': text.toString(),
+          'printerModel': modelId,
+          'ip': discoveredPrinters[model],
+          'label': labelData[selectedLabel],
+        });
+    } else {
+      var ip = model.substring(0, model.indexOf('@'));
+      debugPrint("Called Function with IP!!!!");
+      debugPrint(ip);
+      debugPrint(selectedModel);
+      await platform.invokeMethod('printLabel', <String, dynamic>{
+          'message': text.toString(),
+          'printerModel': selectedModel,
+          'ip': ip,
+          'label': labelData[selectedLabel],
+        });
+    }
+    _canBeClicked = true;
+  }
+}
+
+class TaskSetup extends StatefulWidget {
+  @override
+  TasksList createState() {
+    return TasksList();
+  }
+}
+
+class TasksList extends State<TaskSetup> {
+
+  List<TextEditingController> tasksList= List.generate(selectedDuration*60~/25+1, (index) {
+    if (_tasksList.length > index) {
+      return TextEditingController(text: _tasksList[index]);
+    }
+    return TextEditingController(text: "Task " + index.toString());
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: AppBar(
+        title: Text("Pomodoro Tasks List"),
+      ),
+      body: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+        //Padding(
+        //padding: EdgeInsets.all(10),
+        //child:
+        Expanded(
+        child: ListView.builder(  // ListView with 100 TextFields as children
+          itemCount: tasksList.length,
+          itemBuilder: (context, index) {
+            return TextField(
+              controller: tasksList[index],
+            );
+           },
+         ),
+        //),
+        ),
+        RaisedButton(
+            onPressed: () {
+              for (var i = 0; i < selectedDuration*60~/25+1; i++) {
+                _tasksList.add(tasksList[i].text);
+                tasksList[i].dispose();
+              }
+              Navigator.pop(context);
+            },
+            child: Text('Done!'),
+         ),
+        ]
+      )
+    );
+   }
+}
+
+class PrintSetup extends StatefulWidget {
+  @override
+  PrinterSetting createState() {
+    return PrinterSetting();
+  }
+}
+
+class PrinterSetting extends State<PrintSetup> {
+  
+  final _printerForm = GlobalKey<FormState>();
+  FindPrinters find = new FindPrinters();
+  var _canBeClicked = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: AppBar(
+        title: const Text('Printer Settings!'),
+      ),
+      body: new Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
           DropdownButtonFormField<String>(
             hint: new Text('Select Discovered Printer'),
             value: selectedPrinter,
@@ -202,215 +332,15 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
               child: Text('Discover printers!'),
             ),
           ),
-        ],
+        RaisedButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text('Done!'),
+        ),
+        ]
       ),
     );
-  }
-
-  Future<Null> _printLabel(String text, String model) async {
-    debugPrint(text);
-    debugPrint("Called Function Print!!!!");
-    if (discoveredPrinters.containsKey(model)) {
-      var modelId = model.split(" ")[1];
-      debugPrint(modelId);
-      await platform.invokeMethod('printLabel', <String, dynamic>{
-          'message': text,
-          'printerModel': modelId,
-          'ip': discoveredPrinters[model],
-          'label': labelData[selectedLabel],
-        });
-    } else {
-      var ip = model.substring(0, model.indexOf('@'));
-      debugPrint("Called Function with IP!!!!");
-      debugPrint(ip);
-      debugPrint(selectedModel);
-      await platform.invokeMethod('printLabel', <String, dynamic>{
-          'message': text,
-          'printerModel': selectedModel,
-          'ip': ip,
-          'label': labelData[selectedLabel],
-        });
-    }
-    _canBeClicked = true;
-  }
-}
-
-// PRINT IMAGE FORM
-// Create a PrintImagewidget.
-class MyPrintFormImage extends StatefulWidget {
-  @override
-  MyPrintFormImageState createState() {
-    return MyPrintFormImageState();
-  }
-}
-// Create a corresponding State class.
-// This class holds data related to the form.
-class MyPrintFormImageState extends State<MyPrintFormImage> {
-  final _formKey = GlobalKey<FormState>();
-  final myController = TextEditingController();
-  var _canBeClicked = true;
-  FindPrinters find = new FindPrinters();
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: RaisedButton(
-              onPressed: _selectImage,
-              child: Text('Pick Image'),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: RaisedButton(
-              onPressed: () {
-                if (_canBeClicked) {
-                  _canBeClicked = false;
-                  if (_selectedImage != null) {
-                    Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text('Printing Image!')));
-                    _printImage(_selectedImage, selectedPrinter);
-                  } else {
-                    Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text('Printing Image!')));
-                  }
-                }
-              },
-              child: Text('Print Image'),
-            ),
-          ),
-          DropdownButtonFormField<String>(
-            hint: new Text('Select Discovered Printer/IP'),
-            value: selectedPrinter,
-            icon: Icon(Icons.arrow_downward),
-            iconSize: 24,
-            elevation: 16,
-            style: TextStyle(
-              color: Colors.deepPurple
-            ),
-            onChanged: (String newValue) {
-              setState(() {
-                selectedPrinter = newValue;
-              });
-            },
-            items: networkPrinters
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-          ),
-          DropdownButtonFormField<String>(
-            hint: new Text('Select Printer Model'),
-            value: selectedModel,
-            icon: Icon(Icons.arrow_downward),
-            iconSize: 24,
-            elevation: 16,
-            disabledHint: new Text((discoveredPrinters.containsKey(selectedPrinter))?  selectedPrinter.split(" ")[1] : 'Select Printer Model'),
-            style: TextStyle(
-              color: Colors.amber
-            ),
-            onChanged: (discoveredPrinters.containsKey(selectedPrinter))? null : (String newValue) {
-              setState(() {
-                selectedModel= newValue;
-              });
-            },
-            items: supportedModels
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-          ),
-          DropdownButtonFormField<String>(
-            hint: new Text('Select Label Size'),
-            value: selectedLabel,
-            icon: Icon(Icons.arrow_downward),
-            iconSize: 24,
-            elevation: 16,
-            style: TextStyle(
-              color: Colors.deepOrange
-            ),
-            onChanged: (String newValue) {
-              setState(() {
-                selectedLabel= newValue;
-              });
-            },
-            items: labelsizes
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: RaisedButton(
-              onPressed: () {
-                find._discoverPrinters();
-                find._discoverPrintersWifi();
-              },
-              child: Text('Discover printers!'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<Null> _printImage(File selectedFile, String model) async {
-    if (discoveredPrinters.containsKey(model)) {
-      var modelId = model.split(" ")[1];
-      await platform.invokeMethod('printImage', <String, dynamic>{ //dynamic
-          'imageFile': selectedFile.path,
-          'printerModel': modelId,
-          'ip': discoveredPrinters[model],
-          'label': labelData[selectedLabel],
-        });
-    } else {
-      var ip = model.substring(0, model.indexOf('@'));
-      await platform.invokeMethod('printImage', <String, dynamic>{ //dynamic
-          'imageFile': selectedFile.path,
-          'printerModel': selectedModel,
-          'ip': ip,
-          'label': labelData[selectedLabel],
-        });
-    }
-    _canBeClicked = true;
-  }
-  void _selectImage() async {
-    final imageSource = await showDialog<ImageSource>(
-        context: context,
-        builder: (context) =>
-            AlertDialog(
-              title: Text("Select the image source"),
-              actions: <Widget>[
-                MaterialButton(
-                  child: Text("Camera"),
-                  onPressed: () => Navigator.pop(context, ImageSource.camera),
-                ),
-                MaterialButton(
-                  child: Text("Gallery"),
-                  onPressed: () => Navigator.pop(context, ImageSource.gallery),
-                )
-              ],
-            )
-    );
-
-    if(imageSource != null) {
-      final file = await ImagePicker.pickImage(source: imageSource);
-      if(file != null) {
-        setState(() => _selectedImage = file);
-      }
-    }
   }
 }
 
