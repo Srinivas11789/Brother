@@ -86,6 +86,11 @@ class InitPage extends State<FirstPage> {
     body: new Column(
       mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          Text('Select Pomodoro Duration!',  
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           DropdownButtonFormField<int>(
             hint: new Text('Pomodoro Duration!'),
             value: selectedDuration,
@@ -104,7 +109,7 @@ class InitPage extends State<FirstPage> {
               .map<DropdownMenuItem<int>>((int value) {
                 return DropdownMenuItem<int>(
                   value: value,
-                  child: Text(value.toString()),
+                  child: Text(value.toString() + " Hours"),
                 );
               }).toList(),
           ),
