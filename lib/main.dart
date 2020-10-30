@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:wifi/wifi.dart';
 import 'package:ping_discover_network/ping_discover_network.dart';
 import 'package:multicast_dns/multicast_dns.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 // Custom Label Definitions
 var labelData = {
@@ -482,7 +483,7 @@ class FindPrinters {
     debugPrint(subnet);
   }
 
-  // Find model from the IP --> Leverage SNMP for the below OID.
+  // TODO: Find model from the IP --> Leverage SNMP for the below OID.
   // * No SNMP lib for dart but we can pull this off via snmp socket for SNMP GET ( IN PROGRESS )
   // Mimic String model = finder.getMibValue(ipAddress, "1.3.6.1.2.1.25.3.2.1.3.1"); from sdk
   Future<Null> _getPrinterModel(String ipaddress) async {
@@ -497,5 +498,21 @@ class FindPrinters {
       debugPrint(model);
     });
   });
+  }
+
+  // Discovery of devices via Bluetooth
+  // Ref: https://pub.dev/packages/flutter_blue
+  Future<Null> _discoverPrintersBlt() async {
+    FlutterBlue flutterBlue = FlutterBlue.instance;
+    flutterBlue.startScan(timeout: Duration(seconds: 5));
+    var subscription = flutterBlue.scanResults.listen((results) {
+      for (ScanResult r in results) {
+          networkPrinters.add(r.device.name);
+          print('${r.device.name} found! rssi: ${r.rssi}');
+      }
+    });
+    flutterBlue.stopScan();
+    // Add to network printers
+    debugPrint(networkPrinters.toString());
   }
 }

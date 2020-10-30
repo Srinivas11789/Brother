@@ -21,6 +21,7 @@ dependencies:
   wifi: ^0.1.5
   ping_discover_network: ^0.2.0+1
   multicast_dns: ^0.2.2
+  flutter_blue: ^0.7.2
   flutter:
     sdk: flutter
 
