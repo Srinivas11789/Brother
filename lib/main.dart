@@ -10,13 +10,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:wifi/wifi.dart';
 import 'package:ping_discover_network/ping_discover_network.dart';
 import 'package:multicast_dns/multicast_dns.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 // Custom Label Definitions
 var labelData = {
-  "103mmx164mm": "103mmx164mm", 
+  "103mmx164mm": "103mmx164mm",
   "62mmx8m": "62mmx8m",
-  'RJ2150:Continuous->58mm': 'G2lhARtpVU8QNzkAhAAAAAAAAAAbaVV3AT8EOgAAOgAAsAEAAAAAAAAAAAAAAKoBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANThtbQAAAAAAAAAAAAAAADIuMiIAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAGAAAAAA=',
-  'RJ2150:Diecut->100x50': 'G2lhARtpVU8QNzkAhAAAAAAAAAAbaVV3AT8EMmQAMhQAiAEXAwAAAAAAAAAAAAECAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARGllQ3V0MTAweDUweDUAAAAAAAAAAAAAAAAAAAAAAAAAAEcDAAAEAAAAAAABBAAAAAA=',
+  'RJ2150:Continuous->58mm':
+      'G2lhARtpVU8QNzkAhAAAAAAAAAAbaVV3AT8EOgAAOgAAsAEAAAAAAAAAAAAAAKoBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANThtbQAAAAAAAAAAAAAAADIuMiIAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAGAAAAAA=',
+  'RJ2150:Diecut->100x50':
+      'G2lhARtpVU8QNzkAhAAAAAAAAAAbaVV3AT8EMmQAMhQAiAEXAwAAAAAAAAAAAAECAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARGllQ3V0MTAweDUweDUAAAAAAAAAAAAAAAAAAAAAAAAAAEcDAAAEAAAAAAABBAAAAAA=',
 };
 
 // Main App trigger
@@ -54,8 +57,7 @@ class MyApp extends StatelessWidget {
 
 // Initialize all usable variables
 // 1. Channel Creation
-const platform = const MethodChannel(
-    'com.example.brother_demo');
+const platform = const MethodChannel('com.example.brother_demo');
 // 2. Selected Printer Choice
 String selectedPrinter = "None";
 // 3. Available choices list in dropdown
@@ -65,9 +67,15 @@ var discoveredPrinters = new Map();
 // 5. Selected Image from Gallery/Camera
 File _selectedImage;
 // 6. Label sizes selection
-List<String> labelsizes = ["None", "103mmx164mm", "62mmx8m", "RJ2150:Diecut->100x50", "RJ2150:Continuous->58mm"];
+List<String> labelsizes = [
+  "None",
+  "103mmx164mm",
+  "62mmx8m",
+  "RJ2150:Diecut->100x50",
+  "RJ2150:Continuous->58mm"
+];
 // 7. Supported models
-List<String> supportedModels = ["QL-1110NWB",  "RJ-2150"];
+List<String> supportedModels = ["QL-1110NWB", "RJ-2150"];
 // 8. Selected Choices
 var selectedLabel = "None";
 var selectedModel = "QL-1110NWB";
@@ -80,6 +88,7 @@ class MyPrintFormText extends StatefulWidget {
     return MyPrintFormTextState();
   }
 }
+
 // Create a corresponding State class.
 // This class holds data related to the form.
 class MyPrintFormTextState extends State<MyPrintFormText> {
@@ -113,8 +122,8 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
                 if (_canBeClicked) {
                   _canBeClicked = false;
                   if (_formKey.currentState.validate()) {
-                    Scaffold.of(context)
-                        .showSnackBar(SnackBar(content: Text('Printing Label!')));
+                    Scaffold.of(context).showSnackBar(
+                        SnackBar(content: Text('Printing Label!')));
                     _printLabel(myController.text, selectedPrinter);
                   }
                 }
@@ -128,24 +137,23 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
-            style: TextStyle(
-              color: Colors.deepPurple
-            ),
+            style: TextStyle(color: Colors.deepPurple),
             onChanged: (String newValue) {
               setState(() {
                 selectedPrinter = newValue;
                 if (discoveredPrinters.containsKey(selectedPrinter)) {
-                    selectedModel = selectedPrinter.split(" ")[1];
-                };
+                  selectedModel = selectedPrinter.split(" ")[1];
+                }
+                ;
               });
             },
-            items: networkPrinters
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            items:
+                networkPrinters.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
           DropdownButtonFormField<String>(
             hint: new Text('Select Printer Model'),
@@ -153,22 +161,25 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
-            disabledHint: new Text((discoveredPrinters.containsKey(selectedPrinter))?  selectedPrinter.split(" ")[1] : 'Select Printer Model'),
-            style: TextStyle(
-              color: Colors.amber
-            ),
-            onChanged: (discoveredPrinters.containsKey(selectedPrinter))? null : (String newValue) {
-              setState(() {
-                selectedModel= newValue;
-              });
-            },
-            items: supportedModels
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            disabledHint: new Text(
+                (discoveredPrinters.containsKey(selectedPrinter))
+                    ? selectedPrinter.split(" ")[1]
+                    : 'Select Printer Model'),
+            style: TextStyle(color: Colors.amber),
+            onChanged: (discoveredPrinters.containsKey(selectedPrinter))
+                ? null
+                : (String newValue) {
+                    setState(() {
+                      selectedModel = newValue;
+                    });
+                  },
+            items:
+                supportedModels.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
           DropdownButtonFormField<String>(
             hint: new Text('Select Label Size'),
@@ -176,21 +187,18 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
-            style: TextStyle(
-              color: Colors.deepOrange
-            ),
+            style: TextStyle(color: Colors.deepOrange),
             onChanged: (String newValue) {
               setState(() {
-                selectedLabel= newValue;
+                selectedLabel = newValue;
               });
             },
-            items: labelsizes
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            items: labelsizes.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -198,6 +206,7 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
               onPressed: () {
                 find._discoverPrinters();
                 find._discoverPrintersWifi();
+                find._discoverPrinterBluetooth();
               },
               child: Text('Discover printers!'),
             ),
@@ -214,22 +223,22 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
       var modelId = model.split(" ")[1];
       debugPrint(modelId);
       await platform.invokeMethod('printLabel', <String, dynamic>{
-          'message': text,
-          'printerModel': modelId,
-          'ip': discoveredPrinters[model],
-          'label': labelData[selectedLabel],
-        });
+        'message': text,
+        'printerModel': modelId,
+        'ip': discoveredPrinters[model],
+        'label': labelData[selectedLabel],
+      });
     } else {
       var ip = model.substring(0, model.indexOf('@'));
       debugPrint("Called Function with IP!!!!");
       debugPrint(ip);
       debugPrint(selectedModel);
       await platform.invokeMethod('printLabel', <String, dynamic>{
-          'message': text,
-          'printerModel': selectedModel,
-          'ip': ip,
-          'label': labelData[selectedLabel],
-        });
+        'message': text,
+        'printerModel': selectedModel,
+        'ip': ip,
+        'label': labelData[selectedLabel],
+      });
     }
     _canBeClicked = true;
   }
@@ -243,6 +252,7 @@ class MyPrintFormImage extends StatefulWidget {
     return MyPrintFormImageState();
   }
 }
+
 // Create a corresponding State class.
 // This class holds data related to the form.
 class MyPrintFormImageState extends State<MyPrintFormImage> {
@@ -272,12 +282,12 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
                 if (_canBeClicked) {
                   _canBeClicked = false;
                   if (_selectedImage != null) {
-                    Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text('Printing Image!')));
+                    Scaffold.of(context).showSnackBar(
+                        SnackBar(content: Text('Printing Image!')));
                     _printImage(_selectedImage, selectedPrinter);
                   } else {
-                    Scaffold.of(context)
-                      .showSnackBar(SnackBar(content: Text('Printing Image!')));
+                    Scaffold.of(context).showSnackBar(
+                        SnackBar(content: Text('Printing Image!')));
                   }
                 }
               },
@@ -290,21 +300,19 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
-            style: TextStyle(
-              color: Colors.deepPurple
-            ),
+            style: TextStyle(color: Colors.deepPurple),
             onChanged: (String newValue) {
               setState(() {
                 selectedPrinter = newValue;
               });
             },
-            items: networkPrinters
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            items:
+                networkPrinters.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
           DropdownButtonFormField<String>(
             hint: new Text('Select Printer Model'),
@@ -312,22 +320,25 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
-            disabledHint: new Text((discoveredPrinters.containsKey(selectedPrinter))?  selectedPrinter.split(" ")[1] : 'Select Printer Model'),
-            style: TextStyle(
-              color: Colors.amber
-            ),
-            onChanged: (discoveredPrinters.containsKey(selectedPrinter))? null : (String newValue) {
-              setState(() {
-                selectedModel= newValue;
-              });
-            },
-            items: supportedModels
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            disabledHint: new Text(
+                (discoveredPrinters.containsKey(selectedPrinter))
+                    ? selectedPrinter.split(" ")[1]
+                    : 'Select Printer Model'),
+            style: TextStyle(color: Colors.amber),
+            onChanged: (discoveredPrinters.containsKey(selectedPrinter))
+                ? null
+                : (String newValue) {
+                    setState(() {
+                      selectedModel = newValue;
+                    });
+                  },
+            items:
+                supportedModels.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
           DropdownButtonFormField<String>(
             hint: new Text('Select Label Size'),
@@ -335,21 +346,18 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
             icon: Icon(Icons.arrow_downward),
             iconSize: 24,
             elevation: 16,
-            style: TextStyle(
-              color: Colors.deepOrange
-            ),
+            style: TextStyle(color: Colors.deepOrange),
             onChanged: (String newValue) {
               setState(() {
-                selectedLabel= newValue;
+                selectedLabel = newValue;
               });
             },
-            items: labelsizes
-              .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            items: labelsizes.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -357,6 +365,7 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
               onPressed: () {
                 find._discoverPrinters();
                 find._discoverPrintersWifi();
+                find._discoverPrinterBluetooth();
               },
               child: Text('Discover printers!'),
             ),
@@ -369,28 +378,30 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
   Future<Null> _printImage(File selectedFile, String model) async {
     if (discoveredPrinters.containsKey(model)) {
       var modelId = model.split(" ")[1];
-      await platform.invokeMethod('printImage', <String, dynamic>{ //dynamic
-          'imageFile': selectedFile.path,
-          'printerModel': modelId,
-          'ip': discoveredPrinters[model],
-          'label': labelData[selectedLabel],
-        });
+      await platform.invokeMethod('printImage', <String, dynamic>{
+        //dynamic
+        'imageFile': selectedFile.path,
+        'printerModel': modelId,
+        'ip': discoveredPrinters[model],
+        'label': labelData[selectedLabel],
+      });
     } else {
       var ip = model.substring(0, model.indexOf('@'));
-      await platform.invokeMethod('printImage', <String, dynamic>{ //dynamic
-          'imageFile': selectedFile.path,
-          'printerModel': selectedModel,
-          'ip': ip,
-          'label': labelData[selectedLabel],
-        });
+      await platform.invokeMethod('printImage', <String, dynamic>{
+        //dynamic
+        'imageFile': selectedFile.path,
+        'printerModel': selectedModel,
+        'ip': ip,
+        'label': labelData[selectedLabel],
+      });
     }
     _canBeClicked = true;
   }
+
   void _selectImage() async {
     final imageSource = await showDialog<ImageSource>(
         context: context,
-        builder: (context) =>
-            AlertDialog(
+        builder: (context) => AlertDialog(
               title: Text("Select the image source"),
               actions: <Widget>[
                 MaterialButton(
@@ -402,12 +413,11 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
                   onPressed: () => Navigator.pop(context, ImageSource.gallery),
                 )
               ],
-            )
-    );
+            ));
 
-    if(imageSource != null) {
+    if (imageSource != null) {
       final file = await ImagePicker.pickImage(source: imageSource);
-      if(file != null) {
+      if (file != null) {
         setState(() => _selectedImage = file);
       }
     }
@@ -418,63 +428,64 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
 // * For emulator testing, these methods wont work as emulator network is on 10.0.* NAT through host
 // * For emulator testing, harcode the IP and model number at method channel calls printLabel or printImage
 class FindPrinters {
-    // Uses mDNS to discover printers.
-    // * Works well on Android. Facing https://github.com/flutter/flutter/issues/42102 on IOS.
-    // * For ios leverage Wifi method of printing with 9100 port discovery
-    // 1. Discover IP and Model of Printer
-    Future<Null> _discoverPrinters() async {
-      var reusePort = false;
-      if (Platform.isIOS) {
-        reusePort = true;
-      }
-      const String name = '_printer._tcp.local';
-      // https://github.com/flutter/flutter/issues/27346#issuecomment-594021847
-      var factory = (dynamic host, int port,
-          {bool reuseAddress, bool reusePort, int ttl}) {
-        return RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: reusePort, ttl: 255);
-      };
+  // Uses mDNS to discover printers.
+  // * Works well on Android. Facing https://github.com/flutter/flutter/issues/42102 on IOS.
+  // * For ios leverage Wifi method of printing with 9100 port discovery
+  // 1. Discover IP and Model of Printer
+  Future<Null> _discoverPrinters() async {
+    var reusePort = false;
+    if (Platform.isIOS) {
+      reusePort = true;
+    }
+    const String name = '_printer._tcp.local';
+    // https://github.com/flutter/flutter/issues/27346#issuecomment-594021847
+    var factory =
+        (dynamic host, int port, {bool reuseAddress, bool reusePort, int ttl}) {
+      return RawDatagramSocket.bind(host, port,
+          reuseAddress: true, reusePort: reusePort, ttl: 255);
+    };
 
-      var client = MDnsClient(rawDatagramSocketFactory: factory);
-      //final MDnsClient client = MDnsClient();
-      await client.start();
+    var client = MDnsClient(rawDatagramSocketFactory: factory);
+    //final MDnsClient client = MDnsClient();
+    await client.start();
 
-      // Get the PTR recod for the service.
-      await for (PtrResourceRecord ptr in client
-          .lookup<PtrResourceRecord>(ResourceRecordQuery.serverPointer(name))) {
-        await for (SrvResourceRecord srv in client.lookup<SrvResourceRecord>(
-            ResourceRecordQuery.service(ptr.domainName))) {
-          String model =
-              ptr.domainName.substring(0, ptr.domainName.indexOf('._printer'));
-          print('Dart observatory instance found at '
-          '${srv.target}:${srv.port} for "$model".');
-          await for (IPAddressResourceRecord ipr in client.lookup(
-            ResourceRecordQuery.addressIPv4(srv.target))) {
-            debugPrint('Printer found at '
-                '${ipr.address} with "$model".');
-            model = "(mDNS)"+model;
-            discoveredPrinters[model] = ipr.address.host;
-            if (!networkPrinters.contains(model)) {
-              networkPrinters.add(model);
-            }
-            debugPrint(discoveredPrinters.toString());
+    // Get the PTR recod for the service.
+    await for (PtrResourceRecord ptr in client
+        .lookup<PtrResourceRecord>(ResourceRecordQuery.serverPointer(name))) {
+      await for (SrvResourceRecord srv in client.lookup<SrvResourceRecord>(
+          ResourceRecordQuery.service(ptr.domainName))) {
+        String model =
+            ptr.domainName.substring(0, ptr.domainName.indexOf('._printer'));
+        print('Dart observatory instance found at '
+            '${srv.target}:${srv.port} for "$model".');
+        await for (IPAddressResourceRecord ipr
+            in client.lookup(ResourceRecordQuery.addressIPv4(srv.target))) {
+          debugPrint('Printer found at '
+              '${ipr.address} with "$model".');
+          model = "(mDNS)" + model;
+          discoveredPrinters[model] = ipr.address.host;
+          if (!networkPrinters.contains(model)) {
+            networkPrinters.add(model);
           }
+          debugPrint(discoveredPrinters.toString());
         }
       }
-      client.stop();
-      debugPrint('Done.');
+    }
+    client.stop();
+    debugPrint('Done.');
   }
 
   // WIFI discovery of devices via Wifi at 9100 port
   // https://en.wikipedia.org/wiki/List_of_printing_protocols
-  // 1. Discovers IP but not the model 
+  // 1. Discovers IP but not the model
   Future<Null> _discoverPrintersWifi() async {
     final String ip = await Wifi.ip;
     final String subnet = ip.substring(0, ip.lastIndexOf('.'));
 
     final stream = NetworkAnalyzer.discover2(subnet, 9100);
     stream.listen((NetworkAddress addr) {
-      if (addr.exists && !networkPrinters.contains(addr.ip+"@9100")) {
-        networkPrinters.add(addr.ip+"@9100");
+      if (addr.exists && !networkPrinters.contains(addr.ip + "@9100")) {
+        networkPrinters.add(addr.ip + "@9100");
       }
     });
     debugPrint(networkPrinters.toString());
@@ -487,15 +498,24 @@ class FindPrinters {
   // Mimic String model = finder.getMibValue(ipAddress, "1.3.6.1.2.1.25.3.2.1.3.1"); from sdk
   Future<Null> _getPrinterModel(String ipaddress) async {
     final ipObj = InternetAddress(ipaddress);
-    RawDatagramSocket.bind(ipObj, 4444).then((RawDatagramSocket socket){
-    print('Sending from ${socket.address.address}:${socket.port}');
-    socket.send("".codeUnits, ipObj, 161);
-    socket.listen((RawSocketEvent e){
-      Datagram d = socket.receive();
-      if (d == null) return;
-      String model = new String.fromCharCodes(d.data);
-      debugPrint(model);
+    RawDatagramSocket.bind(ipObj, 4444).then((RawDatagramSocket socket) {
+      print('Sending from ${socket.address.address}:${socket.port}');
+      socket.send("".codeUnits, ipObj, 161);
+      socket.listen((RawSocketEvent e) {
+        Datagram d = socket.receive();
+        if (d == null) return;
+        String model = new String.fromCharCodes(d.data);
+        debugPrint(model);
+      });
     });
-  });
+  }
+
+  Future<Null> _discoverPrinterBluetooth() async {
+    List<BluetoothDiscoveryResult> results = List<BluetoothDiscoveryResult>();
+    FlutterBluetoothSerial blClassic = FlutterBluetoothSerial.instance;
+    blClassic.startDiscovery().listen((r) {
+      debugPrint("=====================================================>");
+      debugPrint(r.device.name);
+    });
   }
 }
