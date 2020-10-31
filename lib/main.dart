@@ -10,8 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:wifi/wifi.dart';
 import 'package:ping_discover_network/ping_discover_network.dart';
 import 'package:multicast_dns/multicast_dns.dart';
-import 'package:flutter_blue/flutter_blue.dart';
-//import 'package:flutter_bluetooth_basic/flutter_bluetooth_basic.dart';
+import 'package:flutter_bluetooth_basic/flutter_bluetooth_basic.dart';
 
 // Custom Label Definitions
 var labelData = {
@@ -63,7 +62,6 @@ const platform = const MethodChannel('com.example.brother_demo');
 String selectedPrinter = "None";
 // 3. Available choices list in dropdown
 List<String> networkPrinters = ["None"];
-List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
 // 4. Relation device <--> IP
 var discoveredPrinters = new Map();
 // 5. Selected Image from Gallery/Camera
@@ -426,7 +424,6 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
   }
 }
 
-/*
 /// Bluetooth printer
 class PrinterBluetooth {
   PrinterBluetooth(this._device);
@@ -436,7 +433,6 @@ class PrinterBluetooth {
   String get address => _device.address;
   int get type => _device.type;
 }
-*/
 
 // FIND PRINTER HELPERS
 // * For emulator testing, these methods wont work as emulator network is on 10.0.* NAT through host
@@ -525,33 +521,6 @@ class FindPrinters {
   }
 
   // Discovery of devices via Bluetooth
-  // Ref: https://pub.dev/packages/flutter_blue
-  Future<Null> _discoverPrintersBlt() async {
-    FlutterBlue flutterBlue = FlutterBlue.instance;
-    flutterBlue.startScan(timeout: Duration(seconds: 10));
-    flutterBlue.scanResults.listen((List<ScanResult> results) {
-      for (ScanResult r in results) {
-        print('bluetooth discovered ++++>> ${r.device} found!');
-        for (String printr in supportedModels) {
-          if (r.device.name != "" && printr.startsWith(r.device.name)) {
-            devicesList.add(r.device);
-            print(
-                'bluetooth discovered ------->> ${printr} and ${r.device} found! rssi: ${r.rssi}');
-            networkPrinters.add("BLT::" + r.device.name);
-          }
-        }
-      }
-    });
-    // Stop scanning
-    flutterBlue.stopScan();
-    // Add to network printers
-    debugPrint(
-        "=====================================> Coming in hot from bluetooth!");
-    debugPrint(devicesList.toString());
-  }
-
-  /*
-  // Discovery of devices via Bluetooth
   // Ref: https://pub.dev/packages/flutter_bluetooth_basic and https://github.com/andrey-ushakov/esc_pos_bluetooth
   Future<Null> _discoverPrintersBlt() async {
     BluetoothManager bluetoothManager = BluetoothManager.instance;
@@ -574,5 +543,4 @@ class FindPrinters {
       });
     });
   }
-  */
 }
