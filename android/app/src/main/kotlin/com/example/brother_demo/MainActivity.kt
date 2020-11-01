@@ -1,5 +1,11 @@
 package com.example.brother_demo
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -7,6 +13,7 @@ import android.graphics.Paint
 import android.os.Build
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import com.brother.ptouch.sdk.LabelInfo
@@ -18,11 +25,14 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
-import java.io.*
+import java.io.File
+import java.io.InputStream
+
 
 val printerModels = mapOf("QL-1110NWB" to PrinterInfo.Model.QL_1110NWB, "QL-820NWB" to PrinterInfo.Model.QL_820NWB, "RJ-2150" to PrinterInfo.Model.RJ_2150);
 val labelSizes = mapOf("103mmx164mm" to LabelInfo.QL1100.W103H164.ordinal, "62mmx8m" to LabelInfo.QL1100.W62.ordinal);
 val rjCustomLabels = mapOf("Diecut->100x50" to "rj2150_diecut_100x50x5.bin", "Continuous->58mm" to "rj2150_58mm_continuous.bin");
+val bltDiscoveredPrinters = HashMap<String, String>()
 
 class MainActivity: FlutterActivity() {
     // Channel Name
@@ -32,26 +42,70 @@ class MainActivity: FlutterActivity() {
     // For each channel message calls do something...
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         GeneratedPluginRegistrant.registerWith(flutterEngine);
-        MethodChannel(flutterEngine.dartExecutor, CHANNEL).setMethodCallHandler {call, result ->
-            if (call.method == "printLabel") {
+        MethodChannel(flutterEngine.dartExecutor, CHANNEL).setMethodCallHandler { call, result ->
+            // TODO: switch case here
+            if  (call.method == "printLabel") {
                 val message = call.argument("message") as? String
                 val printerModel = call.argument("printerModel") as? String
                 val ip = call.argument("ip") as? String
                 val label = call.argument("label") as? String
                 printData(message, printerModel, ip, label)
-                result.success(true) 
+                result.success(true)
             } else if (call.method == "printImage") {
                 val imageFile = call.argument("imageFile") as? String
                 val printerModel = call.argument("printerModel") as? String
-                val ip =  call.argument("ip") as? String
+                val ip = call.argument("ip") as? String
                 val label = call.argument("label") as? String
                 printImage(imageFile, printerModel, ip, label)
-                result.success(true) 
+                result.success(true)
+            } else if (call.method == "discoverBltPrinters") {
+                // Reference: https://stackoverflow.com/questions/10560319/bluetooth-device-discovery-in-android-startdiscovery
+                /* Unimplemented
+                //register local BT adapter
+                val mBTA = BluetoothAdapter.getDefaultAdapter()
+                //check to see if there is BT on the Android device at all
+                if (mBTA == null) {
+                    val duration = Toast.LENGTH_SHORT
+                    Toast.makeText(this, "No Bluetooth on this handset", duration).show()
+                    result.notImplemented();
+                }
+                //let's make the user enable BT if it isn't already
+                if (!mBTA.isEnabled()) {
+                    val enableBT = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                    startActivityForResult(enableBT, -0x21524111)
+                }
+                //cancel any prior BT device discovery
+                if (mBTA.isDiscovering()) {
+                    mBTA.cancelDiscovery()
+                }
+                //re-start discovery
+                mBTA.startDiscovery()
+
+                //let's make a broadcast receiver to register our things
+                val mReceiver = SingBroadcastReceiver()
+                val ifilter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+                this.registerReceiver(mReceiver, ifilter)
+
+                mBTA.cancelDiscovery()
+                */
+                result.success(ArrayList(bltDiscoveredPrinters.keys));
             } else {
-                result.notImplemented()
+                result.notImplemented();
             }
         }
     }
+
+    /*
+    private class SingBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            val action = intent.action //may need to chain this to a recognizing function
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                bltDiscoveredPrinters[device.getName().toString()] = device.getAddress();
+            }
+        }
+    }
+    */
 
     // Convert text to bitmap image data
     @RequiresApi(Build.VERSION_CODES.M)
@@ -72,7 +126,7 @@ class MainActivity: FlutterActivity() {
             paint.setStyle(Paint.Style.FILL);
             c.drawRect(rectText, paint);
             c.drawText(text, x.toFloat(), y.toFloat(), paint)
-            c.rotate(90f, c.width.toFloat()/2, c.height.toFloat()/2)
+            c.rotate(90f, c.width.toFloat() / 2, c.height.toFloat() / 2)
             b;
         } catch (e: Exception) {
             print(e.message);
@@ -163,11 +217,11 @@ class MainActivity: FlutterActivity() {
 
         Thread({
             if (printer.startCommunication()) {
-                    val result: PrinterStatus = printer.printFile(imageFile);
-                    if (result.errorCode != ErrorCode.ERROR_NONE) {
-                        Log.d("TAG", "ERROR - " + result.errorCode);
-                    }
-                    printer.endCommunication();
+                val result: PrinterStatus = printer.printFile(imageFile);
+                if (result.errorCode != ErrorCode.ERROR_NONE) {
+                    Log.d("TAG", "ERROR - " + result.errorCode);
+                }
+                printer.endCommunication();
             }
         }).start();
     }
