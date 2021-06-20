@@ -19,6 +19,13 @@ var labelData = {
   'RJ2150:Diecut->100x50': 'G2lhARtpVU8QNzkAhAAAAAAAAAAbaVV3AT8EMmQAMhQAiAEXAwAAAAAAAAAAAAECAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARGllQ3V0MTAweDUweDUAAAAAAAAAAAAAAAAAAAAAAAAAAEcDAAAEAAAAAAABBAAAAAA=',
 };
 
+// Printer ports
+var printerPorts = {
+  9100: "JetDirect",
+  631: "IPP",
+  515: "LPR",
+};
+
 // Main App trigger
 void main() => runApp(MyApp());
 
@@ -196,8 +203,9 @@ class MyPrintFormTextState extends State<MyPrintFormText> {
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: RaisedButton(
               onPressed: () {
+                var currentPortDiscovery = new List<int>.from(printerPorts.keys);
                 find._discoverPrinters();
-                find._discoverPrintersWifi();
+                find._discoverPrintersWifi(currentPortDiscovery);
               },
               child: Text('Discover printers!'),
             ),
@@ -355,8 +363,9 @@ class MyPrintFormImageState extends State<MyPrintFormImage> {
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: RaisedButton(
               onPressed: () {
+                var currentPortDiscovery = new List<int>.from(printerPorts.keys);
                 find._discoverPrinters();
-                find._discoverPrintersWifi();
+                find._discoverPrintersWifi(currentPortDiscovery);
               },
               child: Text('Discover printers!'),
             ),
@@ -423,15 +432,15 @@ class FindPrinters {
     // * For ios leverage Wifi method of printing with 9100 port discovery
     // 1. Discover IP and Model of Printer
     Future<Null> _discoverPrinters() async {
-      var reusePort = false;
+      var staticReusePort = false;
       if (Platform.isIOS) {
-        reusePort = true;
+        staticReusePort = true;
       }
       const String name = '_printer._tcp.local';
       // https://github.com/flutter/flutter/issues/27346#issuecomment-594021847
       var factory = (dynamic host, int port,
           {bool reuseAddress, bool reusePort, int ttl}) {
-        return RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: reusePort, ttl: 255);
+        return RawDatagramSocket.bind(host, port, reuseAddress: true, reusePort: staticReusePort, ttl: ttl);
       };
 
       var client = MDnsClient(rawDatagramSocketFactory: factory);
@@ -445,7 +454,7 @@ class FindPrinters {
             ResourceRecordQuery.service(ptr.domainName))) {
           String model =
               ptr.domainName.substring(0, ptr.domainName.indexOf('._printer'));
-          print('Dart observatory instance found at '
+          print('Local Printer Instance found at '
           '${srv.target}:${srv.port} for "$model".');
           await for (IPAddressResourceRecord ipr in client.lookup(
             ResourceRecordQuery.addressIPv4(srv.target))) {
@@ -467,14 +476,22 @@ class FindPrinters {
   // WIFI discovery of devices via Wifi at 9100 port
   // https://en.wikipedia.org/wiki/List_of_printing_protocols
   // 1. Discovers IP but not the model 
-  Future<Null> _discoverPrintersWifi() async {
+  Future<Null> _discoverPrintersWifi(List<int> currentPortDiscovery) async {
     final String ip = await Wifi.ip;
     final String subnet = ip.substring(0, ip.lastIndexOf('.'));
+    var currentPort = currentPortDiscovery[0];
+    currentPortDiscovery.removeAt(0);
+    debugPrint("Scanning for port: " + currentPort.toString());
 
-    final stream = NetworkAnalyzer.discover2(subnet, 9100);
+    final stream = NetworkAnalyzer.discover2(subnet, currentPort);
     stream.listen((NetworkAddress addr) {
-      if (addr.exists && !networkPrinters.contains(addr.ip+"@9100")) {
-        networkPrinters.add(addr.ip+"@9100");
+      var discoveredID = addr.ip+"@"+currentPort.toString()+" ["+printerPorts[currentPort]+"]";
+      if (addr.exists && !networkPrinters.contains(discoveredID)) {
+        networkPrinters.add(discoveredID);
+      }
+    }).onDone(() {
+      if (currentPortDiscovery.length > 0) {
+        _discoverPrintersWifi(currentPortDiscovery);
       }
     });
     debugPrint(networkPrinters.toString());

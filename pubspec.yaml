@@ -20,7 +20,7 @@ dependencies:
   image_picker: ^0.6.1+4
   wifi: ^0.1.5
   ping_discover_network: ^0.2.0+1
-  multicast_dns: ^0.2.2
+  multicast_dns: ^0.3.0
   flutter:
     sdk: flutter
 
